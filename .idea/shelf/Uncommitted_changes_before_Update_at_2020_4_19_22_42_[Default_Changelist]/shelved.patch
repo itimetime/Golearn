@@ -1,0 +1,168 @@
+Index: day06/08json_demo/main.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package main\r\n\r\nimport (\r\n\t\"encoding/json\"\r\n\t\"fmt\"\r\n)\r\n\r\ntype person struct {\r\n\tName string `json:\"name\"`\r\n\tAge int `json:\"age\"`\r\n}\r\n\r\nfunc main() {\r\n\tstr := `{\"name\":\"ck\",\"age\":23}`\r\n\tvar p person\r\n\tjson.Unmarshal([]byte(str),&p)\r\n\tfmt.Println(p.Name,p.Age)\r\n}\r\n\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- day06/08json_demo/main.go	(revision 37ad0b95609394716f8a113156088d98c17750a8)
++++ day06/08json_demo/main.go	(date 1587241957217)
+@@ -3,6 +3,7 @@
+ import (
+ 	"encoding/json"
+ 	"fmt"
++	"reflect"
+ )
+ 
+ type person struct {
+@@ -15,6 +16,8 @@
+ 	var p person
+ 	json.Unmarshal([]byte(str),&p)
+ 	fmt.Println(p.Name,p.Age)
++	v := reflect.ValueOf(&p)
++	fmt.Println(v.Kind())
+ }
+ 
+ 
+Index: day06/11ini_demo/conf.ini
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- day06/11ini_demo/conf.ini	(date 1587239995380)
++++ day06/11ini_demo/conf.ini	(date 1587239995380)
+@@ -0,0 +1,13 @@
++; mysql config
++[mysql]
++address = 10.20.30.40
++port = 3306
++username = root
++password = rootroot
++
++# redis config
++[redis]
++host = 127.0.0.1
++port = 6379
++username = root
++password = 0
+Index: day06/11ini_demo/main.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- day06/11ini_demo/main.go	(date 1587240644492)
++++ day06/11ini_demo/main.go	(date 1587240644492)
+@@ -0,0 +1,103 @@
++package main
++
++import (
++	"errors"
++	"fmt"
++	"io/ioutil"
++	"reflect"
++	"strings"
++)
++
++//ini 配置文件解析器
++
++//MysqlConfig struct
++
++type MysqlConfig struct {
++	Address  string `int:"address"`
++	Port     int    `ini: "port"`
++	Username string `ini: "username"`
++	Password string `ini: "password"`
++}
++
++type RedisConfig struct {
++	Host     string `int:"host"`
++	Port     int    `ini: "port"`
++	Username string `ini: "username"`
++	Password string `ini: "password"`
++}
++
++type Config struct {
++	MysqlConfig `ini:"mysql"`
++	RedisConfig `ini:"redis"`
++}
++
++func loadIni(fileName string, data interface{}) (err error) {
++	var structName string
++	//0. 参数的校验 传进来的是指针类型 且为结构体
++	t := reflect.TypeOf(data)
++	fmt.Println(t, t.Kind())
++	if t.Kind() != reflect.Ptr {
++		//	err := fmt.Errorf("data should be a pointer") //格式化输出返回error类型
++		err = errors.New("data should be a pointer")
++		return
++	}
++
++	if t.Elem().Kind() != reflect.Struct {
++		err = errors.New("data should be a struct")
++		return
++	}
++	//1.读取得到字节类型数据
++
++	b, err := ioutil.ReadFile(fileName)
++	if err != nil {
++		return err
++	}
++	lineSlice := strings.Split(string(b), "\r\n")
++	//fmt.Printf("%#v",lineSlice)
++	//2.一行一行读 如果是注释跳过  []代表节
++	for idx, line := range lineSlice {
++		//去掉空格
++		line = strings.TrimSpace(line)
++		if strings.HasPrefix(line, ";") || strings.HasPrefix(line, "#") || len(line) == 0 {
++			continue
++		}
++		sectionName := strings.TrimSpace(line[1 : len(line)-1])
++		if line[0] == '[' {
++			if line[len(line)-1] != ']' || len(sectionName) == 0 {
++				err = fmt.Errorf("line: %d syntax error", idx+1)
++				return
++			}
++			for i := 0; i < t.Elem().NumField(); i++ {
++				field := t.Elem().Field(i)
++				if sectionName == field.Tag.Get("ini") {
++					structName = field.Name
++					fmt.Println(structName)
++				}
++			}
++		} else {
++			if strings.Index(line, "=") == -1 || strings.HasPrefix(line, "=") {
++				err = fmt.Errorf("line: %d syntax error", idx+1)
++				return
++			}
++			v := reflect.ValueOf(data)
++			structObj := v.Elem().FieldByName(structName)
++			if structObj.Kind() != reflect.Struct{
++				err = fmt.Errorf("not struct")
++				return
++			}
++		}
++
++	}
++	return nil
++}
++
++func main() {
++	var cfg MysqlConfig
++	//var x = new(int)
++	err := loadIni("./conf.ini", &cfg)
++	//err = loadIni("./conf.ini", &x)
++	if err != nil {
++		fmt.Printf("load ini failed : %s", err)
++	}
++	fmt.Println(cfg)
++}
+Index: dst.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- dst.txt	(revision 37ad0b95609394716f8a113156088d98c17750a8)
++++ dst.txt	(date 1586429621068)
+@@ -1,0 +1,1 @@
++git push origin master
+\ No newline at end of file
