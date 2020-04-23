@@ -1,0 +1,9 @@
+mode: set
+golearnProject/day09/03test/split/split.go:9.50,10.14 1 1
+golearnProject/day09/03test/split/split.go:16.2,16.5 1 1
+golearnProject/day09/03test/split/split.go:10.14,11.31 1 1
+golearnProject/day09/03test/split/split.go:14.3,14.9 1 1
+golearnProject/day09/03test/split/split.go:11.31,13.4 1 1
+golearnProject/day09/03test/split/split.go:16.5,18.17 2 1
+golearnProject/day09/03test/split/split.go:18.17,21.4 2 1
+golearnProject/day09/03test/split/split.go:21.8,24.4 2 1
